@@ -1,8 +1,17 @@
 from selenium import webdriver
 from datetime import datetime as dt
 from pprint import pprint
+import pandas as pd
+import os
 
 def query_webpage(date):
+    """
+    Gets the availabilities of permits from date to date + 5 days
+    If successful:
+        Returns a list of dicts to be loaded into pandas
+    Else:
+        Returns None
+    """
     with webdriver.Firefox() as driver:
         driver.get('https://camping.ehawaii.gov/camping/all,details,1692.html')
         
@@ -19,13 +28,6 @@ def query_webpage(date):
         
         timestamp = dt.now()
 
-        # [
-        #   { now, date, availability
-        #   now, date, availability
-        #   now, date, availability
-        #   now, date, availability
-        #   now, date, availability
-
         all_rows = []
         for i, date in enumerate(dates):
             row_dict = {
@@ -35,11 +37,20 @@ def query_webpage(date):
                 }
             all_rows.append(row_dict)
 
-        pprint(all_rows)
-
-        return 
+        return all_rows
 
     return None
 
 if __name__ == '__main__':
-    query_webpage(None)
+    
+    if not os.path.exists('permit_availability.csv'):
+        df = pd.DataFrame(columns=['time checked', 'date', 'availability'])
+    else:
+        df = pd.read_csv('permit_availability.csv', index_col=0)
+
+    rows_to_add = query_webpage(None)
+    rows_to_add_df = pd.DataFrame(rows_to_add)
+    df = pd.concat([df, rows_to_add_df], ignore_index=True)
+
+    df.to_csv('permit_availability.csv')
+
