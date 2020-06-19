@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 from datetime import datetime as dt
 from pprint import pprint
 import pandas as pd
@@ -19,6 +20,11 @@ def query_webpage(date):
             if element.get_attribute('aria-labelledby') == 'ui-id-5':
                 element.click()
         
+        for element in driver.find_elements_by_tag_name('input'):
+            if element.get_attribute('id') == 'availability_calendar':
+                element.send_keys(date) # date
+                element.send_keys(Keys.RETURN) # can probs do this in one line
+
         table_elem = driver.find_element_by_id('sites_table')
         headers = table_elem.find_elements_by_tag_name('th')[6:]
         dates = [header.text for header in headers]
@@ -42,7 +48,10 @@ def query_webpage(date):
     return None
 
 if __name__ == '__main__':
-    
+    result = query_webpage('06-22-2020')
+    pprint(result)
+    exit()
+
     if not os.path.exists('permit_availability.csv'):
         df = pd.DataFrame(columns=['time checked', 'date', 'availability'])
     else:
