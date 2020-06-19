@@ -1,4 +1,6 @@
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime as dt
 from pprint import pprint
 import pandas as pd
@@ -18,10 +20,19 @@ def query_webpage(date):
         for element in driver.find_elements_by_tag_name('li'):
             if element.get_attribute('aria-labelledby') == 'ui-id-5':
                 element.click()
+
+        disabled_states = driver.find_elements_by_class_name('ui-state-disabled')
+        print(disabled_states)
+
+        driver.find_element_by_id('availability_calendar').send_keys('06/28/2020' + Keys.ENTER)
+
+        disabled_states = driver.find_elements_by_class_name('ui-state-disabled')
+        print(disabled_states)
         
         table_elem = driver.find_element_by_id('sites_table')
         headers = table_elem.find_elements_by_tag_name('th')[6:]
         dates = [header.text for header in headers]
+        pprint(dates)
     
         cell_data = table_elem.find_elements_by_tag_name('td')[6:11]
         availabilities = [avail.text for avail in cell_data] 
@@ -41,16 +52,17 @@ def query_webpage(date):
 
     return None
 
+
 if __name__ == '__main__':
     
-    if not os.path.exists('permit_availability.csv'):
-        df = pd.DataFrame(columns=['time checked', 'date', 'availability'])
-    else:
-        df = pd.read_csv('permit_availability.csv', index_col=0)
+    #if not os.path.exists('permit_availability.csv'):
+    #    df = pd.DataFrame(columns=['time checked', 'date', 'availability'])
+    #else:
+    #    df = pd.read_csv('permit_availability.csv', index_col=0)
 
     rows_to_add = query_webpage(None)
-    rows_to_add_df = pd.DataFrame(rows_to_add)
-    df = pd.concat([df, rows_to_add_df], ignore_index=True)
+    #rows_to_add_df = pd.DataFrame(rows_to_add)
+    #df = pd.concat([df, rows_to_add_df], ignore_index=True)
 
-    df.to_csv('permit_availability.csv')
+    #df.to_csv('permit_availability.csv')
 
