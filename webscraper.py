@@ -21,14 +21,19 @@ def query_webpage(date):
             if element.get_attribute('aria-labelledby') == 'ui-id-5':
                 element.click()
 
-        disabled_states = driver.find_elements_by_class_name('ui-state-disabled')
-        print(disabled_states)
+        #disabled_states = driver.find_elements_by_class_name('ui-state-disabled')
+        #print(disabled_states)
 
-        driver.find_element_by_id('availability_calendar').send_keys('06/28/2020' + Keys.ENTER)
+        driver.find_element_by_id('availability_calendar').send_keys('{}{}'.format(date, Keys.RETURN))
 
-        disabled_states = driver.find_elements_by_class_name('ui-state-disabled')
-        print(disabled_states)
+        #disabled_states = driver.find_elements_by_class_name('ui-state-disabled')
+        #print(disabled_states)
         
+        #for element in driver.find_elements_by_tag_name('input'):
+        #    if element.get_attribute('id') == 'availability_calendar':
+        #        element.send_keys(date) # date
+        #        element.send_keys(Keys.RETURN) # can probs do this in one line
+
         table_elem = driver.find_element_by_id('sites_table')
         headers = table_elem.find_elements_by_tag_name('th')[6:]
         dates = [header.text for header in headers]
@@ -54,15 +59,18 @@ def query_webpage(date):
 
 
 if __name__ == '__main__':
-    
-    #if not os.path.exists('permit_availability.csv'):
-    #    df = pd.DataFrame(columns=['time checked', 'date', 'availability'])
-    #else:
-    #    df = pd.read_csv('permit_availability.csv', index_col=0)
+    result = query_webpage('06-22-2020')
+    pprint(result)
+    exit()
+
+    if not os.path.exists('permit_availability.csv'):
+        df = pd.DataFrame(columns=['time checked', 'date', 'availability'])
+    else:
+        df = pd.read_csv('permit_availability.csv', index_col=0)
 
     rows_to_add = query_webpage(None)
-    #rows_to_add_df = pd.DataFrame(rows_to_add)
-    #df = pd.concat([df, rows_to_add_df], ignore_index=True)
+    rows_to_add_df = pd.DataFrame(rows_to_add)
+    df = pd.concat([df, rows_to_add_df], ignore_index=True)
 
-    #df.to_csv('permit_availability.csv')
+    df.to_csv('permit_availability.csv')
 
