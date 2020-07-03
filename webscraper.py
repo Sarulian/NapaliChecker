@@ -3,6 +3,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options
 from datetime import datetime as dt
+import time
 from pprint import pprint
 import pandas as pd
 import os
@@ -16,7 +17,8 @@ def query_webpage(date):
         Returns None
     """
     opts = Options()
-    opts.headless = True
+    #opts.headless = True
+    opts.headless = False
     with webdriver.Firefox(options=opts) as driver:
         driver.get('https://camping.ehawaii.gov/camping/all,details,1692.html')
 
@@ -27,17 +29,14 @@ def query_webpage(date):
         disabled_states = driver.find_elements_by_class_name('ui-state-disabled')
         print(disabled_states)
 
+        print(date)
         driver.find_element_by_id(
             'availability_calendar').send_keys(
                 '{}{}'.format(date, Keys.RETURN))
+        time.sleep(5)
 
         disabled_states = driver.find_elements_by_class_name('ui-state-disabled')
         print(disabled_states)
-
-        #for element in driver.find_elements_by_tag_name('input'):
-        #    if element.get_attribute('id') == 'availability_calendar':
-        #        element.send_keys(date) # date
-        #        element.send_keys(Keys.RETURN) # can probs do this in one line
 
         table_elem = driver.find_element_by_id('sites_table')
         headers = table_elem.find_elements_by_tag_name('th')[6:]
@@ -64,7 +63,7 @@ def query_webpage(date):
 
 
 if __name__ == '__main__':
-    result = query_webpage('08-22-2020')
+    result = query_webpage('08/22/2020')
     pprint(result)
     exit()
 
