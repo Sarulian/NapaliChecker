@@ -63,18 +63,26 @@ def query_webpage(date):
 
 
 if __name__ == '__main__':
+    today = dt.date.today()
+    # from today 25 days
+    t_25 = today-DT.timedelta(days=25)
+    # from today 30 days
+    t_30 = today-DT.timedelta(days=30)
+    pprint(t_30, t_25)
+    exit()
+    # queery
     result = query_webpage('08/22/2020')
     pprint(result)
-    exit()
+    # exit()
 
     if not os.path.exists('permit_availability.csv'):
         df = pd.DataFrame(columns=['time checked', 'date', 'availability'])
     else:
         df = pd.read_csv('permit_availability.csv', index_col=0)
 
-    rows_to_add = query_webpage(None)
-    rows_to_add_df = pd.DataFrame(rows_to_add)
-    df = pd.concat([df, rows_to_add_df], ignore_index=True)
+    # rows_to_add = query_webpage(None)
+    rows_to_add_df = pd.DataFrame(result)
+    df = pd.concat([df, rows_to_add_df], ignore_index=True, sort=False)
 
     df.to_csv('permit_availability.csv')
 
