@@ -9,6 +9,14 @@ import time
 from pprint import pprint
 import pandas as pd
 import os
+import logging
+
+logging.basicConfig(
+    filename='webscraper.log',
+    format='%(levelname)s %(asctime)s: %(message)s',
+    level=logging.DEBUG
+)
+
 
 def query_webpage(date):
     """
@@ -18,6 +26,8 @@ def query_webpage(date):
     Else:
         Returns None
     """
+    logging.info('Starting query.')
+
     opts = Options()
     #opts.headless = True    # Uncomment to run headless
     opts.headless = False
@@ -48,6 +58,7 @@ def query_webpage(date):
 
 
 def get_availability(driver, date):
+    logging.info('Getting availability for {}'.format(date))
 
     # Enter desired date into calender input
     #
