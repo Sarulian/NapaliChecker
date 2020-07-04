@@ -66,6 +66,7 @@ def save_data(result):
     Save data to a new csv otherwise append to old
 
     """
+    # todo add logging
     if not os.path.exists('permit_availability.csv'):
         df = pd.DataFrame(columns=['time checked', 'date', 'availability'])
     else:
@@ -86,31 +87,15 @@ if __name__ == '__main__':
     # from today 30 days
     t_30 = today+dt.timedelta(days=30)
     print(t_30)
-
-    print(type(t_30))
     print(t_30.strftime("%m/%d/%Y"))
-    # pprint(t_30, t_25)
-    # exit()
 
-    # queery1
+    # query1
     result = query_webpage(t_25.strftime("%m/%d/%Y"))
     pprint(result)
     save_data(result)
 
-    # queery 2
+    # query 2
     result = query_webpage(t_30.strftime("%m/%d/%Y"))
     pprint(result)
     save_data(result)
-    # exit()
-
-    # if not os.path.exists('permit_availability.csv'):
-    #     df = pd.DataFrame(columns=['time checked', 'date', 'availability'])
-    # else:
-    #     df = pd.read_csv('permit_availability.csv', index_col=0)
-
-    # # rows_to_add = query_webpage(None)
-    # rows_to_add_df = pd.DataFrame(result)
-    # df = pd.concat([df, rows_to_add_df], ignore_index=True, sort=False)
-
-    # df.to_csv('permit_availability.csv')
 
