@@ -1,7 +1,9 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime as dt
 import time
 from pprint import pprint
@@ -30,10 +32,16 @@ def query_webpage(date):
         print(disabled_states)
 
         print(date)
-        driver.find_element_by_id(
-            'availability_calendar').send_keys(
-                '{}{}'.format(date, Keys.RETURN))
-        time.sleep(5)
+        cal_elem = driver.find_element_by_id('availability_calendar')
+        cal_elem.send_keys('{}{}'.format(date, Keys.RETURN))
+
+        #element = WebDriverWait(
+        #    driver, 5).until(
+        #        EC.element_to_be_clickable((By.ID, 'availability_calender')))
+        cal_elem = driver.find_element_by_class_name('availability_calendar')
+        print(element)
+        #'blockUI blockOverlay'
+        #time.sleep(5)
 
         disabled_states = driver.find_elements_by_class_name('ui-state-disabled')
         print(disabled_states)
