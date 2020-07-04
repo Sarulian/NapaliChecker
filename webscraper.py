@@ -19,7 +19,7 @@ def query_webpage(date):
         Returns None
     """
     opts = Options()
-    #opts.headless = True
+    #opts.headless = True    # Uncomment to run headless
     opts.headless = False
     with webdriver.Firefox(options=opts) as driver:
         driver.get('https://camping.ehawaii.gov/camping/all,details,1692.html')
@@ -28,46 +28,64 @@ def query_webpage(date):
             if element.get_attribute('aria-labelledby') == 'ui-id-5':
                 element.click()
 
-        disabled_states = driver.find_elements_by_class_name('ui-state-disabled')
-        print(disabled_states)
-
-        print(date)
-        cal_elem = driver.find_element_by_id('availability_calendar')
-        cal_elem.send_keys('{}{}'.format(date, Keys.RETURN))
-
-        #element = WebDriverWait(
-        #    driver, 5).until(
-        #        EC.element_to_be_clickable((By.ID, 'availability_calender')))
-        cal_elem = driver.find_element_by_class_name('availability_calendar')
-        print(element)
-        #'blockUI blockOverlay'
-        #time.sleep(5)
-
-        disabled_states = driver.find_elements_by_class_name('ui-state-disabled')
-        print(disabled_states)
-
-        table_elem = driver.find_element_by_id('sites_table')
-        headers = table_elem.find_elements_by_tag_name('th')[6:]
-        dates = [header.text for header in headers]
-        pprint(dates)
-
-        cell_data = table_elem.find_elements_by_tag_name('td')[6:11]
-        availabilities = [avail.text for avail in cell_data]
-
-        timestamp = dt.datetime.now()
-
         all_rows = []
-        for i, date in enumerate(dates):
-            row_dict = {
-                    'time checked': timestamp,
-                    'date': dates[i],
-                    'availability': availabilities[i]
-                }
-            all_rows.append(row_dict)
+
+        # 25-30 days from today
+        #
+        t_25 = date + dt.timedelta(days=25)
+        t_25_str = t_25.strftime("%m/%d/%Y")
+        all_rows.extend(get_availability(driver, t_25_str))
+
+        # 30-35 days from today
+        #
+        t_30 = date + dt.timedelta(days=30)
+        t_30_str = t_30.strftime("%m/%d/%Y")
+        all_rows.extend(get_availability(driver, t_30_str))
 
         return all_rows
 
     return None
+
+
+def get_availability(driver, date):
+
+    # Enter desired date into calender input
+    #
+    cal_elem = driver.find_element_by_id('availability_calendar')
+    cal_elem.clear()
+    cal_elem.send_keys('{}{}'.format(date, Keys.RETURN))
+
+    # Wait until "Processing" element appears and disappears
+    #
+    block_elem = WebDriverWait(
+        driver, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'blockUI')))
+    WebDriverWait(
+        driver, 10).until(
+            EC.staleness_of(block_elem))
+
+    # Extract availability information from table
+    #
+    table_elem = driver.find_element_by_id('sites_table')
+    headers = table_elem.find_elements_by_tag_name('th')[6:]
+    dates = [header.text for header in headers]
+    cell_data = table_elem.find_elements_by_tag_name('td')[6:11]
+    availabilities = [avail.text for avail in cell_data]
+
+    # Move data into list of dictionaries
+    #
+    timestamp = dt.datetime.now()
+    all_rows = []
+    for i, date in enumerate(dates):
+        row_dict = {
+                'time checked': timestamp,
+                'date': dates[i],
+                'availability': availabilities[i]
+            }
+        all_rows.append(row_dict)
+
+    return all_rows
+
 
 def save_data(result):
     """
@@ -86,24 +104,12 @@ def save_data(result):
 
     df.to_csv('permit_availability.csv')
 
+
 if __name__ == '__main__':
+
     today = dt.datetime.now().date()
-    print(today)
-    # from today 25 days
-    t_25 = today+dt.timedelta(days=25)
-    print(t_25)
-    # from today 30 days
-    t_30 = today+dt.timedelta(days=30)
-    print(t_30)
-    print(t_30.strftime("%m/%d/%Y"))
+    results = query_webpage(today)
+    pprint(results)
+    save_data(results)
 
-    # query1
-    result = query_webpage(t_25.strftime("%m/%d/%Y"))
-    pprint(result)
-    save_data(result)
-
-    # query 2
-    result = query_webpage(t_30.strftime("%m/%d/%Y"))
-    pprint(result)
-    save_data(result)
 
