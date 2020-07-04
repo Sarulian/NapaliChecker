@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options
-from datetime import datetime as dt
+import datetime as dt
 import time
 from pprint import pprint
 import pandas as pd
@@ -46,7 +46,7 @@ def query_webpage(date):
         cell_data = table_elem.find_elements_by_tag_name('td')[6:11]
         availabilities = [avail.text for avail in cell_data]
 
-        timestamp = dt.now()
+        timestamp = dt.datetime.now()
 
         all_rows = []
         for i, date in enumerate(dates):
@@ -61,20 +61,11 @@ def query_webpage(date):
 
     return None
 
+def save_data(result):
+    """
+    Save data to a new csv otherwise append to old
 
-if __name__ == '__main__':
-    today = dt.date.today()
-    # from today 25 days
-    t_25 = today-DT.timedelta(days=25)
-    # from today 30 days
-    t_30 = today-DT.timedelta(days=30)
-    pprint(t_30, t_25)
-    exit()
-    # queery
-    result = query_webpage('08/22/2020')
-    pprint(result)
-    # exit()
-
+    """
     if not os.path.exists('permit_availability.csv'):
         df = pd.DataFrame(columns=['time checked', 'date', 'availability'])
     else:
@@ -85,4 +76,41 @@ if __name__ == '__main__':
     df = pd.concat([df, rows_to_add_df], ignore_index=True, sort=False)
 
     df.to_csv('permit_availability.csv')
+
+if __name__ == '__main__':
+    today = dt.datetime.now().date()
+    print(today)
+    # from today 25 days
+    t_25 = today+dt.timedelta(days=25)
+    print(t_25)
+    # from today 30 days
+    t_30 = today+dt.timedelta(days=30)
+    print(t_30)
+
+    print(type(t_30))
+    print(t_30.strftime("%m/%d/%Y"))
+    # pprint(t_30, t_25)
+    # exit()
+
+    # queery1
+    result = query_webpage(t_25.strftime("%m/%d/%Y"))
+    pprint(result)
+    save_data(result)
+
+    # queery 2
+    result = query_webpage(t_30.strftime("%m/%d/%Y"))
+    pprint(result)
+    save_data(result)
+    # exit()
+
+    # if not os.path.exists('permit_availability.csv'):
+    #     df = pd.DataFrame(columns=['time checked', 'date', 'availability'])
+    # else:
+    #     df = pd.read_csv('permit_availability.csv', index_col=0)
+
+    # # rows_to_add = query_webpage(None)
+    # rows_to_add_df = pd.DataFrame(result)
+    # df = pd.concat([df, rows_to_add_df], ignore_index=True, sort=False)
+
+    # df.to_csv('permit_availability.csv')
 
