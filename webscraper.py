@@ -109,6 +109,7 @@ def save_data(result):
 
     """
     out_file = '/home/pi/Github/NapaliChecker/permit_availability.csv'
+    out_file = '/home/pi/NapaliChecker/permit_availability.csv'
     # todo add logging
     if not os.path.exists(out_file):
         df = pd.DataFrame(columns=['time checked', 'date', 'availability'])
