@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as EC
+#from pyvirtualdisplay import Display
 import datetime as dt
 import time
 from pprint import pprint
@@ -14,7 +15,7 @@ import logging
 logging.basicConfig(
     filename='webscraper.log',
     format='%(levelname)s %(asctime)s: %(message)s',
-    level=logging.DEBUG
+    level=logging.INFO
 )
 
 
@@ -29,9 +30,9 @@ def query_webpage(date):
     logging.info('Starting query.')
 
     opts = Options()
-    #opts.headless = True    # Uncomment to run headless
-    opts.headless = False
-    with webdriver.Firefox(options=opts) as driver:
+    opts.headless = True    # Uncomment to run headless
+    #opts.headless = False
+    with webdriver.Firefox(options=opts, executable_path='/usr/bin/geckodriver') as driver:
         driver.get('https://camping.ehawaii.gov/camping/all,details,1692.html')
 
         for element in driver.find_elements_by_tag_name('li'):
@@ -52,6 +53,7 @@ def query_webpage(date):
         t_30_str = t_30.strftime("%m/%d/%Y")
         all_rows.extend(get_availability(driver, t_30_str))
 
+        #display.stop()
         return all_rows
 
     return None
@@ -68,12 +70,15 @@ def get_availability(driver, date):
 
     # Wait until "Processing" element appears and disappears
     #
-    block_elem = WebDriverWait(
-        driver, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, 'blockUI')))
-    WebDriverWait(
-        driver, 10).until(
-            EC.staleness_of(block_elem))
+    try:
+        block_elem = WebDriverWait(
+            driver, 10).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'blockUI')))
+        WebDriverWait(
+            driver, 10).until(
+                EC.staleness_of(block_elem))
+    except TimeoutException:
+        pass
 
     # Extract availability information from table
     #
@@ -103,17 +108,18 @@ def save_data(result):
     Save data to a new csv otherwise append to old
 
     """
+    out_file = '/home/pi/Github/NapaliChecker/permit_availability.csv'
     # todo add logging
-    if not os.path.exists('permit_availability.csv'):
+    if not os.path.exists(out_file):
         df = pd.DataFrame(columns=['time checked', 'date', 'availability'])
     else:
-        df = pd.read_csv('permit_availability.csv', index_col=0)
+        df = pd.read_csv(out_file, index_col=0)
 
     # rows_to_add = query_webpage(None)
     rows_to_add_df = pd.DataFrame(result)
     df = pd.concat([df, rows_to_add_df], ignore_index=True, sort=False)
 
-    df.to_csv('permit_availability.csv')
+    df.to_csv(out_file)
 
 
 if __name__ == '__main__':
