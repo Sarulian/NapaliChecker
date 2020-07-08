@@ -16,7 +16,6 @@ if __name__ == '__main__':
 	driver.get('https://www.google.com')
 	print(driver.page_source)
 	driver.close()
-	display.stop()
 	# driver = webdriver.Chrome('/usr/lib/chromium-browser/chromedriver')  # Optional argument, if not specified will search path.
 	# driver.get('http://www.google.com/xhtml');
 	# time.sleep(5) # Let the user actually see something!
