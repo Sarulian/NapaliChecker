@@ -1,16 +1,12 @@
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.support import expected_conditions as EC
-#from pyvirtualdisplay import Display
+import requests
+from bs4 import BeautifulSoup
 import datetime as dt
-import time
-from pprint import pprint
 import pandas as pd
 import os
 import logging
+import sys
+import time
+from pprint import pprint
 
 logging.basicConfig(
     filename='webscraper.log',
@@ -29,64 +25,43 @@ def query_webpage(date):
     """
     logging.info('Starting query.')
 
-    opts = Options()
-    opts.headless = True    # Uncomment to run headless
-    #opts.headless = False
-    with webdriver.Firefox(options=opts, executable_path='/usr/bin/geckodriver') as driver:
-        driver.get('https://camping.ehawaii.gov/camping/all,details,1692.html')
+    all_rows = []
 
-        for element in driver.find_elements_by_tag_name('li'):
-            if element.get_attribute('aria-labelledby') == 'ui-id-5':
-                element.click()
-
-        all_rows = []
-
-        # 25-30 days from today
-        #
-        t_25 = date + dt.timedelta(days=25)
-        t_25_str = t_25.strftime("%m/%d/%Y")
-        all_rows.extend(get_availability(driver, t_25_str))
-
-        # 30-35 days from today
-        #
-        t_30 = date + dt.timedelta(days=30)
-        t_30_str = t_30.strftime("%m/%d/%Y")
-        all_rows.extend(get_availability(driver, t_30_str))
-
-        #display.stop()
-        return all_rows
-
-    return None
-
-
-def get_availability(driver, date):
-    logging.info('Getting availability for {}'.format(date))
-
-    # Enter desired date into calender input
+    # 25-30 days from today
     #
-    cal_elem = driver.find_element_by_id('availability_calendar')
-    cal_elem.clear()
-    cal_elem.send_keys('{}{}'.format(date, Keys.RETURN))
+    t_25 = date + dt.timedelta(days=25)
+    t_25_str = t_25.strftime("%Y%m%d")
+    all_rows.extend(get_availability(t_25_str))
 
-    # Wait until "Processing" element appears and disappears
+    # 30-35 days from today
     #
-    try:
-        block_elem = WebDriverWait(
-            driver, 10).until(
-                EC.presence_of_element_located((By.CLASS_NAME, 'blockUI')))
-        WebDriverWait(
-            driver, 10).until(
-                EC.staleness_of(block_elem))
-    except TimeoutException:
-        pass
+    t_30 = date + dt.timedelta(days=30)
+    t_30_str = t_30.strftime("%Y%m%d")
+    all_rows.extend(get_availability(t_30_str))
 
-    # Extract availability information from table
-    #
-    table_elem = driver.find_element_by_id('sites_table')
-    headers = table_elem.find_elements_by_tag_name('th')[6:]
-    dates = [header.text for header in headers]
-    cell_data = table_elem.find_elements_by_tag_name('td')[6:11]
-    availabilities = [avail.text for avail in cell_data]
+    return all_rows
+
+
+def get_availability(date_str):
+    logging.info('Getting availability for {}'.format(date_str))
+    res = requests.get(
+        'https://camping.ehawaii.gov/camping/all,sites,0,25,1,1692,,,,' \
+        '{},5,,,1,1594601235210.html'.format(date_str)
+    )
+    soup = BeautifulSoup(res.text, 'html.parser')
+
+    table = soup.find('table')
+    table_rows   = table.find_all('tr')
+
+    for i, tr in enumerate(table_rows):
+        if i == 0:
+            th = tr.find_all('th')
+            row = [i.text.replace('\n', '').strip() for i in th]
+            dates = row[6:11]
+        elif i == 1:
+            td = tr.find_all('td')
+            row = [i.text.replace('\n', '').strip() for i in td]
+            availabilities = row[6:11]
 
     # Move data into list of dictionaries
     #
