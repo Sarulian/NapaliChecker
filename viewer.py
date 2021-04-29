@@ -82,6 +82,7 @@ def heatmap(df):
 
 
 df = pd.read_csv('permit_availability_hobbiton.csv')
+print(df)
 
 df['time checked'] = pd.to_datetime(df['time checked'])
 df['time checked'] = df['time checked'] - timedelta(hours=3)
@@ -90,7 +91,7 @@ df['date'] = df['date'].apply(lambda x: x.replace(year=2020))
 
 df['time delta'] = df['date'] - df['time checked']
 
-deadline = dt.strptime('07-22-20 00:00:00', '%m-%d-%y %H:%M:%S')
+deadline = dt.strptime('07-22-21 00:00:00', '%m-%d-%y %H:%M:%S')
 df['days until deadline'] = ((deadline - df['time checked']).dt.total_seconds()/60/60/24)
 #df['days until deadline'] = ((deadline - df['time checked']).dt.total_seconds()/60/60/24).astype(int)
 
